@@ -1,6 +1,6 @@
 # Developed by: Pranave B
 # Register Number: 212221240040
-# Date:
+
 # Ex.No: 02 LINEAR AND POLYNOMIAL TREND ESTIMATION
 
 ### AIM:
@@ -17,112 +17,69 @@ Calculate the polynomial trend values using least square method
 
 End the program
 ### PROGRAM:
-A - LINEAR TREND ESTIMATION
+
 ```python
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from tabulate import tabulate
-%matplotlib inline
-train = pd.read_csv('AirPassengers.csv')
 
-train['Month'] = pd.to_datetime(train['Month'], format='%Y-%m')
-train['Year'] = train['Month'].dt.year
-train.head()
+# Load the Tesla Stock dataset
+file_path = '/mnt/data/tsla_2014_2023.csv'
+data = pd.read_csv(file_path)
 
-year = train['Year'].values.reshape(-1, 1)
-values = train['#Passengers'].values
+# Convert 'date' column to datetime and sort the data
+data['date'] = pd.to_datetime(data['date'])
+data.sort_values('date', inplace=True)
 
-x=year
-y=values
+# Filter data for a specific range (e.g., 1 year from January 1, 2019, to January 1, 2020)
+start_date = '2019-01-01'
+end_date = '2020-01-01'
+filtered_data = data[(data['date'] >= start_date) & (data['date'] <= end_date)]
 
-X = [i - x[len(x)//2] for i in x]
-x2 = [i ** 2 for i in X]
-xy = [i * j for i, j in zip(X, y)]
-table = [[i, j, k, l, m] for i, j, k, l, m in zip(x, y, X, x2, xy)]
-print(tabulate(table, headers=["Year", "Prod", "X=x-2014", "X^2", "xy"], tablefmt="grid"))
+# Extract date and close price for the filtered range
+dates = filtered_data['date']
+prices = filtered_data['close']
 
-from sklearn.linear_model import LinearRegression
-lin = LinearRegression()
-lin.fit(X, y)
-n=len(x)
-b=(n*sum(xy)-sum(y)*sum(X))/(n*sum(x2)-(sum(X)**2))
-a=(sum(y)-b*sum(X))/n
-print("a=%.1f,b=%.1f"%(a,b))
+# Calculate linear trend for the close prices
+coeffs_linear = np.polyfit(np.arange(len(prices)), prices, 1)
+linear_trend = np.polyval(coeffs_linear, np.arange(len(prices)))
 
-l=[]
-for i in range(n):
-  l.append(a+b*X[i]);
-print("Trend Equation : y=%d+%.2fx"%(a,b))
-import matplotlib.pyplot as plt
-plt.title("Linear Trend Graph")
-plt.xlabel("Year")
-plt.ylabel("Passengers")
-plt.plot(x,l,color='red')
+# Calculate polynomial trend (degree 2) for the close prices
+coeffs_poly = np.polyfit(np.arange(len(prices)), prices, 2)
+poly_trend = np.polyval(coeffs_poly, np.arange(len(prices)))
+
+# Plotting Linear Trend
+plt.figure(figsize=(12, 6))
+plt.plot(dates, prices, color='blue', alpha=0.3, label='Original Data')  # Use transparency
+plt.plot(dates, linear_trend, color='red', linewidth=2, label='Linear Trend')
+plt.xlabel('Date')
+plt.ylabel('Close Price')
+plt.title('Linear Trend Estimation (Tesla Stock)')
+plt.legend()
+plt.grid(True)
 plt.show()
 
-pred = 110.0
-predarray = np.array([[pred]])
-lin.predict(predarray)
-```
-B- POLYNOMIAL TREND ESTIMATION
-```python
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import PolynomialFeatures
-import pandas as pd
-from tabulate import tabulate
-%matplotlib inline
-
-train = pd.read_csv('AirPassengers.csv')
-train['Month'] = pd.to_datetime(train['Month'], format='%Y-%m')
-train['Year'] = train['Month'].dt.year
-train.head()
-
-year = train['Year'].values.reshape(-1, 1)
-values = train['#Passengers'].values
-x=year
-y=values
-X = [2*(i-(sum(x)/len(x))) for i in x]
-x2 = [i ** 2 for i in X]
-xy = [i * j for i, j in zip(X, y)]
-x3 = [i ** 3 for i in X]
-x4 = [i ** 4 for i in X]
-x2y = [i * j for i, j in zip(x2, y)]
-table = [[i, j, k, l, m,n,o,p] for i, j, k, l, m,n,o,p in zip(x, y, X, x2, x3,x4,xy,x2y)]
-print(tabulate(table, headers=["Year", "Prod", "X=x-2013", "X^2", "X^3", "X^4", "xy", "x2y"], tablefmt="grid"))
-
-from sklearn.linear_model import LinearRegression
-lin = LinearRegression()
-lin.fit(X, y)
-from sklearn.preprocessing import PolynomialFeatures
-poly = PolynomialFeatures(degree=4)
-X_poly = poly.fit_transform(X)
-poly.fit(X_poly, y)
-lin2 = LinearRegression()
-lin2.fit(X_poly, y)
-plt.plot(X, lin2.predict(poly.fit_transform(X)),
-color='red')
-plt.title('Polynomial Regression')
-plt.xlabel('Month')
-plt.ylabel('Passengers')
+# Plotting Polynomial Trend
+plt.figure(figsize=(12, 6))
+plt.plot(dates, prices, color='blue', alpha=0.3, label='Original Data')  # Use transparency
+plt.plot(dates, poly_trend, color='green', linewidth=2, label='Polynomial Trend (Degree 2)')
+plt.xlabel('Date')
+plt.ylabel('Close Price')
+plt.title('Polynomial Trend Estimation (Tesla Stock)')
+plt.legend()
+plt.grid(True)
 plt.show()
 
-pred2 = 110.0
-pred2array = np.array([[pred2]])
-lin2.predict(poly.fit_transform(pred2array))
 ```
 
 ### OUTPUT
 
-Before Performing Trend Operations:
-![image](https://github.com/user-attachments/assets/d5341d9e-b7eb-4f03-ba27-fd2d3e8d0089)
+
 A - LINEAR TREND ESTIMATION
-![image](https://github.com/user-attachments/assets/11261dec-2e32-4982-b1b0-70589b72283e)
+![image](linear-trend-estimation.png)
 
 B- POLYNOMIAL TREND ESTIMATION
-![image](https://github.com/user-attachments/assets/f43c484f-b3e2-47fd-91e5-c11d293efef5)
+![image](polynomial-trend-estimation.png)
 
 ### RESULT:
 Thus ,the python program for linear and Polynomial Trend Estiamtion has been executed successfully.
